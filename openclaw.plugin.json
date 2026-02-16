@@ -1,0 +1,31 @@
+{
+  "id": "wellness-claw",
+  "name": "WellnessClaw",
+  "description": "Conversational wellness assistant — passive logging, Oura insights, coaching nudges, and a web dashboard.",
+  "version": "1.0.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "timezone": {
+        "type": "string",
+        "default": "America/New_York",
+        "description": "Your local timezone for scheduling nudges"
+      },
+      "nudgesPerDay": {
+        "type": "number",
+        "default": 3,
+        "description": "Maximum proactive nudges per day"
+      },
+      "dashboardPassword": {
+        "type": "string",
+        "description": "Password to access the web dashboard"
+      }
+    }
+  },
+  "uiHints": {
+    "dashboardPassword": {
+      "label": "Dashboard Password",
+      "sensitive": true
+    }
+  }
+}
