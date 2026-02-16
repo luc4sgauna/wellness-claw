@@ -25,6 +25,12 @@ Examples:
 - "feeling anxious" → LOG, category=mood, subcategory=anxious, value=6, unit=rating
 - "took my vitamins" → LOG, category=medication, subcategory=vitamins
 - "headache all day" → LOG, category=symptom, subcategory=headache
+- "read 2 chapters" → LOG, category=reading, subcategory=book title if known, value=2, unit=chapters
+- "journaled for 15 min" → LOG, category=mindfulness, subcategory=journaling, value=15, unit=minutes
+- "meditated 10 min" → LOG, category=mindfulness, subcategory=meditation, value=10, unit=minutes
+- "stretched for 20 min" → LOG, category=exercise, subcategory=stretching, value=20, unit=minutes
+- "sauna 15 min" → LOG, category=recovery, subcategory=sauna, value=15, unit=minutes
+- "cold plunge 3 min" → LOG, category=recovery, subcategory=cold_plunge, value=3, unit=minutes
 
 Action: Call `log_wellness_entry` with extracted fields. Then respond naturally.
 
