@@ -1,6 +1,7 @@
 {
   "id": "wellness-claw",
-  "name": "WellnessClaw",
+  "name": "wellness-claw",
+  "displayName": "WellnessClaw",
   "description": "Conversational wellness assistant — passive logging, Oura insights, coaching nudges, and a web dashboard.",
   "version": "1.0.0",
   "configSchema": {
@@ -20,12 +21,17 @@
         "type": "string",
         "description": "Password to access the web dashboard"
       }
-    }
+    },
+    "required": []
   },
   "uiHints": {
-    "dashboardPassword": {
-      "label": "Dashboard Password",
-      "sensitive": true
-    }
-  }
+    "sensitive": [
+      "dashboardPassword"
+    ]
+  },
+  "skills": [
+    "skills/wellness-router",
+    "skills/wellness-coach",
+    "skills/wellness-insights"
+  ]
 }

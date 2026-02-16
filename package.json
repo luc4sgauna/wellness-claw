@@ -8,6 +8,11 @@
     "dev": "tsc --watch",
     "clean": "rm -rf dist"
   },
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ]
+  },
   "dependencies": {
     "better-sqlite3": "^11.7.0"
   },
