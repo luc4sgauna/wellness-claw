@@ -4,41 +4,42 @@ export const queryLogsTool = {
   name: "query_wellness_logs",
   description: `Query the user's wellness log history. Use this to answer questions about their habits,
 find patterns, or display recent entries. Supports filtering by category, date range, and limit.`,
-  schema: {
-    type: "object",
+  parameters: {
+    type: "object" as const,
     properties: {
       category: {
-        type: "string",
+        type: "string" as const,
         description: "Filter by category (exercise, stress, alcohol, sleep, mood, etc.)",
       },
       days_back: {
-        type: "number",
+        type: "number" as const,
         description: "Number of days to look back (default: 30)",
-        default: 30,
       },
       limit: {
-        type: "number",
+        type: "number" as const,
         description: "Max entries to return (default: 50)",
-        default: 50,
       },
       date_from: {
-        type: "string",
+        type: "string" as const,
         description: "Start date (YYYY-MM-DD). Overrides days_back if provided.",
       },
       date_to: {
-        type: "string",
+        type: "string" as const,
         description: "End date (YYYY-MM-DD). Defaults to today.",
       },
     },
-    required: [],
+    required: [] as string[],
   },
-  handler: async (params: {
-    category?: string;
-    days_back?: number;
-    limit?: number;
-    date_from?: string;
-    date_to?: string;
-  }) => {
+  execute: async (
+    _id: string,
+    params: {
+      category?: string;
+      days_back?: number;
+      limit?: number;
+      date_from?: string;
+      date_to?: string;
+    }
+  ) => {
     const db = getDb();
     const daysBack = params.days_back || 30;
     const limit = params.limit || 50;
@@ -74,7 +75,6 @@ find patterns, or display recent entries. Supports filtering by category, date r
 
     const entries = db.prepare(query).all(...queryParams);
 
-    // Also get summary counts by category
     const summary = db
       .prepare(
         `SELECT category, COUNT(*) as count,
@@ -86,11 +86,9 @@ find patterns, or display recent entries. Supports filtering by category, date r
       )
       .all(`-${daysBack} days`);
 
+    const result = { entries, summary, total: entries.length };
     return {
-      text: `Found ${entries.length} entries (last ${daysBack} days)`,
-      entries,
-      summary,
-      total: entries.length,
+      content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
     };
   },
 };

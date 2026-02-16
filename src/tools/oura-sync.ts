@@ -5,48 +5,48 @@ export const ouraSyncTool = {
   description: `Store Oura daily data into the structured database for correlation analysis.
 Call this after retrieving Oura data via the oura_data tool (from OuraClaw).
 Pass the Oura metrics so they can be stored alongside wellness logs for insights queries.`,
-  schema: {
-    type: "object",
+  parameters: {
+    type: "object" as const,
     properties: {
       date: {
-        type: "string",
+        type: "string" as const,
         description: "Date in YYYY-MM-DD format",
       },
-      sleep_score: { type: "number" },
-      readiness_score: { type: "number" },
-      activity_score: { type: "number" },
-      hrv_average: { type: "number" },
-      resting_hr: { type: "number" },
-      total_sleep_minutes: { type: "number" },
-      deep_sleep_minutes: { type: "number" },
-      rem_sleep_minutes: { type: "number" },
-      steps: { type: "number" },
-      active_calories: { type: "number" },
-      bedtime_start: { type: "string" },
-      bedtime_end: { type: "string" },
-      raw_json: {
-        type: "string",
-        description: "Full Oura API response as JSON string (for future use)",
-      },
+      sleep_score: { type: "number" as const, description: "Oura sleep score" },
+      readiness_score: { type: "number" as const, description: "Oura readiness score" },
+      activity_score: { type: "number" as const, description: "Oura activity score" },
+      hrv_average: { type: "number" as const, description: "Average HRV in ms" },
+      resting_hr: { type: "number" as const, description: "Resting heart rate" },
+      total_sleep_minutes: { type: "number" as const, description: "Total sleep in minutes" },
+      deep_sleep_minutes: { type: "number" as const, description: "Deep sleep in minutes" },
+      rem_sleep_minutes: { type: "number" as const, description: "REM sleep in minutes" },
+      steps: { type: "number" as const, description: "Step count" },
+      active_calories: { type: "number" as const, description: "Active calories burned" },
+      bedtime_start: { type: "string" as const, description: "Bedtime start timestamp" },
+      bedtime_end: { type: "string" as const, description: "Bedtime end timestamp" },
+      raw_json: { type: "string" as const, description: "Full Oura API response as JSON string" },
     },
     required: ["date"],
   },
-  handler: async (params: {
-    date: string;
-    sleep_score?: number;
-    readiness_score?: number;
-    activity_score?: number;
-    hrv_average?: number;
-    resting_hr?: number;
-    total_sleep_minutes?: number;
-    deep_sleep_minutes?: number;
-    rem_sleep_minutes?: number;
-    steps?: number;
-    active_calories?: number;
-    bedtime_start?: string;
-    bedtime_end?: string;
-    raw_json?: string;
-  }) => {
+  execute: async (
+    _id: string,
+    params: {
+      date: string;
+      sleep_score?: number;
+      readiness_score?: number;
+      activity_score?: number;
+      hrv_average?: number;
+      resting_hr?: number;
+      total_sleep_minutes?: number;
+      deep_sleep_minutes?: number;
+      rem_sleep_minutes?: number;
+      steps?: number;
+      active_calories?: number;
+      bedtime_start?: string;
+      bedtime_end?: string;
+      raw_json?: string;
+    }
+  ) => {
     const db = getDb();
 
     db.prepare(
@@ -71,23 +71,16 @@ Pass the Oura metrics so they can be stored alongside wellness logs for insights
         synced_at = datetime('now')`
     ).run(
       params.date,
-      params.sleep_score ?? null,
-      params.readiness_score ?? null,
-      params.activity_score ?? null,
-      params.hrv_average ?? null,
-      params.resting_hr ?? null,
-      params.total_sleep_minutes ?? null,
-      params.deep_sleep_minutes ?? null,
-      params.rem_sleep_minutes ?? null,
-      params.steps ?? null,
-      params.active_calories ?? null,
-      params.bedtime_start ?? null,
-      params.bedtime_end ?? null,
+      params.sleep_score ?? null, params.readiness_score ?? null,
+      params.activity_score ?? null, params.hrv_average ?? null,
+      params.resting_hr ?? null, params.total_sleep_minutes ?? null,
+      params.deep_sleep_minutes ?? null, params.rem_sleep_minutes ?? null,
+      params.steps ?? null, params.active_calories ?? null,
+      params.bedtime_start ?? null, params.bedtime_end ?? null,
       params.raw_json ?? null
     );
 
-    return {
-      text: `Oura data synced for ${params.date}: sleep=${params.sleep_score ?? "?"} readiness=${params.readiness_score ?? "?"} HRV=${params.hrv_average ?? "?"}`,
-    };
+    const text = `Oura data synced for ${params.date}: sleep=${params.sleep_score ?? "?"} readiness=${params.readiness_score ?? "?"} HRV=${params.hrv_average ?? "?"}`;
+    return { content: [{ type: "text" as const, text }] };
   },
 };
