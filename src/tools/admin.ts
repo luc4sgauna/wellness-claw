@@ -104,7 +104,7 @@ Use when the user says things like "delete last entry", "export my data", "wipe 
         );
         const csv = [header, ...rows].join("\n");
 
-        const exportDir = path.join(process.env.HOME || "~", ".openclaw", "wellness-claw", "exports");
+        const exportDir = path.join(process.env.OPENCLAW_STATE_DIR || path.join(process.env.HOME || "~", ".openclaw"), "wellness-claw", "exports");
         fs.mkdirSync(exportDir, { recursive: true });
         const filePath = path.join(exportDir, `wellness-export-${new Date().toISOString().split("T")[0]}.csv`);
         fs.writeFileSync(filePath, csv);
@@ -124,7 +124,7 @@ Use when the user says things like "delete last entry", "export my data", "wipe 
         ).all(params.telegram_user_id);
 
         const data = { log_entries: entries, oura_daily: oura, goals };
-        const exportDir = path.join(process.env.HOME || "~", ".openclaw", "wellness-claw", "exports");
+        const exportDir = path.join(process.env.OPENCLAW_STATE_DIR || path.join(process.env.HOME || "~", ".openclaw"), "wellness-claw", "exports");
         fs.mkdirSync(exportDir, { recursive: true });
         const filePath = path.join(exportDir, `wellness-export-${new Date().toISOString().split("T")[0]}.json`);
         fs.writeFileSync(filePath, JSON.stringify(data, null, 2));

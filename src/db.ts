@@ -7,7 +7,8 @@ let _db: Database.Database | null = null;
 export function getDb(dataDir?: string): Database.Database {
   if (_db) return _db;
 
-  const dir = dataDir || path.join(process.env.HOME || "~", ".openclaw", "wellness-claw");
+  const stateDir = process.env.OPENCLAW_STATE_DIR || path.join(process.env.HOME || "~", ".openclaw");
+  const dir = dataDir || path.join(stateDir, "wellness-claw");
   fs.mkdirSync(dir, { recursive: true });
 
   _db = new Database(path.join(dir, "wellness.db"));
