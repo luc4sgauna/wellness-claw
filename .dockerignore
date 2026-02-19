@@ -1,0 +1,11 @@
+node_modules
+dashboard/node_modules
+dashboard/.next
+.claude
+.git
+*.db
+*.db-wal
+*.db-shm
+exports
+.env
+.DS_Store

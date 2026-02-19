@@ -4,7 +4,6 @@ import { insightsTool } from "./tools/insights.js";
 import { manageGoalsTool } from "./tools/goals.js";
 import { adminTool } from "./tools/admin.js";
 import { ouraSyncTool } from "./tools/oura-sync.js";
-import { nudgeCheckTool } from "./tools/nudge-check.js";
 import { getDb } from "./db.js";
 
 export default function wellnessClaw(api: any) {
@@ -18,7 +17,6 @@ export default function wellnessClaw(api: any) {
   api.registerTool(manageGoalsTool);
   api.registerTool(adminTool);
   api.registerTool(ouraSyncTool);
-  api.registerTool(nudgeCheckTool);
 
   console.log("[WellnessClaw] Plugin loaded — tools registered, database ready.");
 }

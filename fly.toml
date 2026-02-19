@@ -1,0 +1,20 @@
+app = "wellness-openclaw"
+primary_region = "iad"
+
+[env]
+  OPENCLAW_STATE_DIR = "/data/.openclaw"
+  TZ = "America/New_York"
+
+[[mounts]]
+  source = "openclaw_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2gb"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
