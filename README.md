@@ -1,14 +1,14 @@
 # WellnessClaw
 
-A conversational wellness assistant plugin for [OpenClaw](https://openclaw.ai/). Text your Telegram bot naturally — it logs, analyzes, and coaches you using your Oura Ring data.
+A conversational wellness assistant plugin for [OpenClaw](https://openclaw.ai/). Text your Telegram bot naturally — it logs, analyzes, and tracks your wellness using your Oura Ring data. Includes a web dashboard for visualizing streaks, goals, and trends.
 
 ## What It Does
 
 - **Passive logging**: Text "45 min HIIT" or "stressful day" — it auto-classifies and stores structured data
 - **Oura insights**: Ask "How does stress affect my sleep?" — it runs correlations against your Oura data
-- **Proactive coaching**: Morning readiness plans, afternoon movement nudges, evening wind-down reminders
 - **Goals + accountability**: Set targets, track streaks, get gentle progress updates
-- **Admin controls**: Delete entries, export data (CSV/JSON), snooze/mute nudges
+- **Web dashboard**: View streaks, goals, Oura charts, correlations, and timeline at `https://wellness-openclaw.fly.dev`
+- **Admin controls**: Delete entries, export data (CSV/JSON)
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ You need these already working:
 ```bash
 # 1. Clone this repo into your OpenClaw extensions directory
 cd ~/.openclaw/extensions
-git clone https://github.com/YOUR_USERNAME/wellness-claw.git
+git clone https://github.com/luc4sgauna/wellness-claw.git
 
 # 2. Install dependencies and build
 cd wellness-claw
@@ -41,8 +41,7 @@ Add to your `openclaw.json`:
       "wellness-claw": {
         enabled: true,
         config: {
-          timezone: "America/New_York",  // your timezone
-          nudgesPerDay: 3
+          timezone: "America/New_York"
         }
       }
     }
@@ -61,49 +60,6 @@ cp HEARTBEAT.md ~/.openclaw/workspace/HEARTBEAT.md
 openclaw gateway --port 18789 --verbose
 ```
 
-## Set Up Cron Jobs (Proactive Nudges)
-
-```bash
-# Morning readiness briefing at 7 AM
-openclaw cron add \
-  --name "wellness-morning" \
-  --cron "0 7 * * *" \
-  --tz "America/New_York" \
-  --session isolated \
-  --message "Morning wellness check: Fetch today's Oura readiness and sleep data. Store it with sync_oura_to_db. Check my goals. Send me a brief morning plan based on my readiness score. Remember to call check_nudge_status first." \
-  --announce \
-  --channel telegram
-
-# Afternoon movement nudge at 2 PM
-openclaw cron add \
-  --name "wellness-afternoon" \
-  --cron "0 14 * * *" \
-  --tz "America/New_York" \
-  --session isolated \
-  --message "Afternoon wellness check: Check my step count and activity from Oura. Check if I logged any exercise today. If I'm behind on movement, send a gentle nudge. Remember to call check_nudge_status first." \
-  --announce \
-  --channel telegram
-
-# Evening wind-down at 9 PM
-openclaw cron add \
-  --name "wellness-evening" \
-  --cron "0 21 * * *" \
-  --tz "America/New_York" \
-  --session isolated \
-  --message "Evening wellness check: Check my bedtime goal and today's logs. If I logged stress or alcohol today, factor that in. Send a brief wind-down reminder. Remember to call check_nudge_status first." \
-  --announce \
-  --channel telegram
-
-# Oura daily sync at midnight (backup — OuraClaw also syncs)
-openclaw cron add \
-  --name "wellness-oura-sync" \
-  --cron "0 0 * * *" \
-  --tz "America/New_York" \
-  --session isolated \
-  --message "Nightly Oura sync: Fetch today's complete Oura data (sleep, readiness, activity, HRV, steps). Store everything with sync_oura_to_db. No need to message me — just sync silently." \
-  --delivery none
-```
-
 ## Usage
 
 Just text your Telegram bot naturally:
@@ -113,7 +69,8 @@ Just text your Telegram bot naturally:
 | "45 min HIIT" | Logs exercise (HIIT, 45 min) |
 | "stressful day" | Logs stress |
 | "2 glasses of wine" | Logs alcohol (wine, 2 drinks) |
-| "going to bed" | Logs bedtime |
+| "hit my protein goal" | Logs protein goal for the day |
+| "read 30 pages" | Logs reading |
 | "How does stress affect my sleep?" | Runs stress vs sleep correlation |
 | "What patterns with alcohol and HRV?" | Runs alcohol vs HRV analysis |
 | "Best sleep lever for me?" | Analyzes what behaviors improve your sleep |
@@ -121,23 +78,41 @@ Just text your Telegram bot naturally:
 | "What are my goals?" | Shows all active goals |
 | "Delete last entry" | Removes the most recent log |
 | "Export my data" | Exports everything to JSON |
-| "Snooze nudges 2 hours" | Pauses proactive messages |
-| "Mute notifications" | Stops all nudges until unmuted |
 
-## Deploy to Fly.io (Always-On)
+## Dashboard
 
-For proactive nudges to work 24/7, deploy OpenClaw to Fly.io:
+The web dashboard runs alongside the OpenClaw gateway and provides:
+
+- **Streaks**: Heatmap tracking for Alcohol, Steps (7k+), Activity (400+ cal), Protein Goal, and Reading
+- **Goals**: Active goals with progress bars
+- **Timeline**: Scrollable feed of all logged entries
+- **Oura**: Charts for sleep scores, HRV, steps, and bedtime consistency
+- **Correlations**: How stress, alcohol, and exercise affect your sleep and recovery
+
+### Dashboard Streaks
+
+| Streak | Data Source | Lights up when |
+|--------|-----------|----------------|
+| Alcohol | Bot log | You logged a drink that day |
+| Steps (7k+) | Oura Ring | Steps >= 7,000 |
+| Activity (400+ cal) | Oura Ring | Active calories >= 400 |
+| Protein Goal | Bot log | You logged "hit protein" |
+| Reading | Bot log | You logged any reading |
+
+## Deploy to Fly.io
+
+The project includes a Dockerfile and `fly.toml` for deployment. The dashboard is served on port 8080 (public) and the OpenClaw gateway runs on port 3000 (internal).
 
 ```bash
-# Follow the OpenClaw Fly.io guide: https://docs.openclaw.ai/install/fly.md
-# Your wellness-claw plugin goes in the persistent volume at /data/.openclaw/extensions/
-
 # Set secrets
-fly secrets set ANTHROPIC_API_KEY=sk-ant-...
+fly secrets set DASHBOARD_PASSWORD=<your-password> -a wellness-openclaw
+fly secrets set ANTHROPIC_API_KEY=sk-ant-... -a wellness-openclaw
 
 # Deploy
-fly deploy
+fly deploy -a wellness-openclaw
 ```
+
+The dashboard will be available at `https://wellness-openclaw.fly.dev`.
 
 ## Data & Privacy
 
@@ -152,6 +127,9 @@ fly deploy
 wellness-claw/
 ├── openclaw.plugin.json    # Plugin manifest
 ├── package.json            # Dependencies
+├── Dockerfile              # Multi-stage build (dashboard + plugin)
+├── fly.toml                # Fly.io app config
+├── entrypoint.sh           # Starts dashboard + gateway
 ├── src/
 │   ├── index.ts            # Plugin entry — registers all tools
 │   ├── db.ts               # SQLite database setup + migrations
@@ -160,14 +138,18 @@ wellness-claw/
 │       ├── query-logs.ts   # Query historical logs
 │       ├── insights.ts     # Correlation analysis engine
 │       ├── goals.ts        # Goals CRUD
-│       ├── admin.ts        # Delete, export, snooze, stats
-│       ├── oura-sync.ts    # Store Oura data for analysis
-│       └── nudge-check.ts  # Rate limiting for proactive nudges
+│       ├── admin.ts        # Delete, export, stats
+│       └── oura-sync.ts    # Store Oura data for analysis
+├── dashboard/
+│   ├── app/                # Next.js pages and API routes
+│   ├── components/         # Sidebar, StatCard, DateRangePicker
+│   ├── lib/                # Auth, DB connection, query modules
+│   └── package.json
 ├── skills/
 │   ├── wellness-router/    # Message classification + routing
-│   ├── wellness-coach/     # Coaching personality + nudge behavior
+│   ├── wellness-coach/     # Coaching personality + behavior
 │   └── wellness-insights/  # How to analyze and present data
-├── HEARTBEAT.md            # Proactive coaching checklist
+├── HEARTBEAT.md            # Heartbeat checklist
 └── README.md
 ```
 
