@@ -17,7 +17,6 @@ const streakColors: Record<string, string> = {
   activity: "#fb923c",
   protein: "#f87171",
   reading: "#facc15",
-  stress: "#f43f5e",
 };
 
 function formatDate(iso: string): string {
