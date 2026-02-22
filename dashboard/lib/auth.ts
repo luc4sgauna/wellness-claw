@@ -1,14 +1,20 @@
 import crypto from "crypto";
 
 const COOKIE_NAME = "wellness_dash_session";
-const SECRET = process.env.DASHBOARD_PASSWORD || "changeme";
+
+function getSecret(): string {
+  const secret = process.env.DASHBOARD_PASSWORD;
+  if (!secret) throw new Error("DASHBOARD_PASSWORD environment variable is not set");
+  return secret;
+}
 
 function getHmacKey(): Buffer {
-  return crypto.createHash("sha256").update(SECRET).digest();
+  return crypto.createHash("sha256").update(getSecret()).digest();
 }
 
 export function verifyPassword(input: string): boolean {
-  const expected = Buffer.from(SECRET, "utf-8");
+  const secret = getSecret();
+  const expected = Buffer.from(secret, "utf-8");
   const actual = Buffer.from(input, "utf-8");
   if (expected.length !== actual.length) return false;
   return crypto.timingSafeEqual(expected, actual);
