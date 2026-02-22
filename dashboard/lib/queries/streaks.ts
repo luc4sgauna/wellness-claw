@@ -57,12 +57,20 @@ function calculateStreaks(dateStrs: string[]): {
   return { currentStreak, longestStreak };
 }
 
-function getAlcoholDates(db: ReturnType<typeof getDb>): string[] {
+function getNoAlcoholDates(db: ReturnType<typeof getDb>): string[] {
   const rows = db
     .prepare(
-      `SELECT DISTINCT date(logged_at) as d FROM log_entries
-       WHERE category = 'alcohol' AND (subcategory IS NULL OR subcategory != 'none')
-       AND logged_at >= datetime('now', '-90 days')
+      `WITH RECURSIVE dates(d) AS (
+         SELECT date('now', '-89 days')
+         UNION ALL
+         SELECT date(d, '+1 day') FROM dates WHERE d < date('now')
+       )
+       SELECT d FROM dates
+       WHERE d NOT IN (
+         SELECT DISTINCT date(logged_at) FROM log_entries
+         WHERE category = 'alcohol' AND (subcategory IS NULL OR subcategory != 'none')
+         AND logged_at >= datetime('now', '-90 days')
+       )
        ORDER BY d DESC`
     )
     .all() as { d: string }[];
@@ -121,7 +129,7 @@ export function getStreaks(): StreakInfo[] {
 
   const streakDefs: { name: string; key: string; getDates: () => string[] }[] =
     [
-      { name: "Alcohol", key: "alcohol", getDates: () => getAlcoholDates(db) },
+      { name: "No Alcohol", key: "alcohol", getDates: () => getNoAlcoholDates(db) },
       { name: "Steps (7k+)", key: "steps", getDates: () => getStepsDates(db) },
       { name: "Activity (400+ cal)", key: "activity", getDates: () => getActivityDates(db) },
       { name: "Protein Goal", key: "protein", getDates: () => getProteinDates(db) },
