@@ -24,6 +24,9 @@ Pass the Oura metrics so they can be stored alongside wellness logs for insights
       active_calories: { type: "number" as const, description: "Active calories burned" },
       bedtime_start: { type: "string" as const, description: "Bedtime start timestamp" },
       bedtime_end: { type: "string" as const, description: "Bedtime end timestamp" },
+      stress_high: { type: "number" as const, description: "Minutes Oura detected high stress" },
+      recovery_high: { type: "number" as const, description: "Minutes Oura detected high recovery" },
+      day_summary: { type: "string" as const, description: "Oura stress day summary: normal, stressful, restored, etc." },
       raw_json: { type: "string" as const, description: "Full Oura API response as JSON string" },
     },
     required: ["date"],
@@ -44,6 +47,9 @@ Pass the Oura metrics so they can be stored alongside wellness logs for insights
       active_calories?: number;
       bedtime_start?: string;
       bedtime_end?: string;
+      stress_high?: number;
+      recovery_high?: number;
+      day_summary?: string;
       raw_json?: string;
     }
   ) => {
@@ -52,8 +58,9 @@ Pass the Oura metrics so they can be stored alongside wellness logs for insights
     db.prepare(
       `INSERT INTO oura_daily (date, sleep_score, readiness_score, activity_score,
         hrv_average, resting_hr, total_sleep_minutes, deep_sleep_minutes,
-        rem_sleep_minutes, steps, active_calories, bedtime_start, bedtime_end, raw_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        rem_sleep_minutes, steps, active_calories, bedtime_start, bedtime_end,
+        stress_high, recovery_high, day_summary, raw_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(date) DO UPDATE SET
         sleep_score = excluded.sleep_score,
         readiness_score = excluded.readiness_score,
@@ -67,6 +74,9 @@ Pass the Oura metrics so they can be stored alongside wellness logs for insights
         active_calories = excluded.active_calories,
         bedtime_start = excluded.bedtime_start,
         bedtime_end = excluded.bedtime_end,
+        stress_high = excluded.stress_high,
+        recovery_high = excluded.recovery_high,
+        day_summary = excluded.day_summary,
         raw_json = excluded.raw_json,
         synced_at = datetime('now')`
     ).run(
@@ -77,10 +87,11 @@ Pass the Oura metrics so they can be stored alongside wellness logs for insights
       params.deep_sleep_minutes ?? null, params.rem_sleep_minutes ?? null,
       params.steps ?? null, params.active_calories ?? null,
       params.bedtime_start ?? null, params.bedtime_end ?? null,
-      params.raw_json ?? null
+      params.stress_high ?? null, params.recovery_high ?? null,
+      params.day_summary ?? null, params.raw_json ?? null
     );
 
-    const text = `Oura data synced for ${params.date}: sleep=${params.sleep_score ?? "?"} readiness=${params.readiness_score ?? "?"} HRV=${params.hrv_average ?? "?"}`;
+    const text = `Oura data synced for ${params.date}: sleep=${params.sleep_score ?? "?"} readiness=${params.readiness_score ?? "?"} HRV=${params.hrv_average ?? "?"} stress=${params.day_summary ?? "?"}`;
     return { content: [{ type: "text" as const, text }] };
   },
 };

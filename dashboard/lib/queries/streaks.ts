@@ -115,6 +115,17 @@ function getReadingDates(db: ReturnType<typeof getDb>): string[] {
   return rows.map((r) => r.d);
 }
 
+function getStressDates(db: ReturnType<typeof getDb>): string[] {
+  const rows = db
+    .prepare(
+      `SELECT date FROM oura_daily
+       WHERE day_summary = 'stressful' AND date >= date('now', '-90 days')
+       ORDER BY date DESC`
+    )
+    .all() as { date: string }[];
+  return rows.map((r) => r.date);
+}
+
 export function getStreaks(): StreakInfo[] {
   const db = getDb();
 
@@ -125,6 +136,7 @@ export function getStreaks(): StreakInfo[] {
       { name: "Activity (400+ cal)", key: "activity", getDates: () => getActivityDates(db) },
       { name: "Protein Goal", key: "protein", getDates: () => getProteinDates(db) },
       { name: "Reading", key: "reading", getDates: () => getReadingDates(db) },
+      { name: "Stress (Oura)", key: "stress", getDates: () => getStressDates(db) },
     ];
 
   return streakDefs.map(({ name, key, getDates }) => {

@@ -59,6 +59,9 @@ function migrate(db: Database.Database): void {
       bedtime_start TEXT,
       bedtime_end TEXT,
       raw_json TEXT,
+      stress_high INTEGER,
+      recovery_high INTEGER,
+      day_summary TEXT,
       synced_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -83,6 +86,18 @@ function migrate(db: Database.Database): void {
       muted INTEGER NOT NULL DEFAULT 0
     );
 
+    -- Migrations for existing databases
+    -- These are no-ops if columns already exist (SQLite doesn't support IF NOT EXISTS for ALTER)
+  `);
+
+  // Add stress columns to oura_daily if they don't exist yet
+  const cols = db.prepare("PRAGMA table_info(oura_daily)").all() as { name: string }[];
+  const colNames = cols.map(c => c.name);
+  if (!colNames.includes("stress_high"))   db.exec("ALTER TABLE oura_daily ADD COLUMN stress_high INTEGER");
+  if (!colNames.includes("recovery_high")) db.exec("ALTER TABLE oura_daily ADD COLUMN recovery_high INTEGER");
+  if (!colNames.includes("day_summary"))   db.exec("ALTER TABLE oura_daily ADD COLUMN day_summary TEXT");
+
+  db.exec(`
     -- Indexes for common queries
     CREATE INDEX IF NOT EXISTS idx_log_entries_category ON log_entries(category);
     CREATE INDEX IF NOT EXISTS idx_log_entries_logged_at ON log_entries(logged_at);
