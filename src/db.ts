@@ -42,7 +42,7 @@ function migrate(db: Database.Database): void {
       logged_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- Oura daily summaries (synced from OuraClaw)
+    -- Oura daily summaries (synced via Personal Access Token)
     CREATE TABLE IF NOT EXISTS oura_daily (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT UNIQUE NOT NULL,

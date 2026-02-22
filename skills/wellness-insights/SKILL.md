@@ -80,8 +80,7 @@ Example:
 ## Oura Data Integration
 
 When combining Oura data with user logs:
-- Use `oura_data` (OuraClaw) to get current/recent Oura metrics
-- Use `sync_oura_to_db` to store them for historical analysis
+- Oura data is automatically synced daily — no manual fetch needed
 - Use `get_wellness_insight` to run correlations against stored data
 - Always specify the time period you're analyzing
 
