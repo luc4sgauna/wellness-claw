@@ -74,13 +74,13 @@ Only call this tool when the message clearly contains something to log.`,
     ).run(
       messageId,
       params.category,
-      params.subcategory || null,
-      params.value || null,
-      params.unit || null,
-      params.notes || null
+      params.subcategory ?? null,
+      params.value ?? null,
+      params.unit ?? null,
+      params.notes ?? null
     );
 
-    const text = `Logged: ${params.category}${params.subcategory ? ` (${params.subcategory})` : ""}${params.value ? ` — ${params.value} ${params.unit || ""}` : ""}`;
+    const text = `Logged: ${params.category}${params.subcategory ? ` (${params.subcategory})` : ""}${params.value != null ? ` — ${params.value} ${params.unit ?? ""}` : ""}`;
     return { content: [{ type: "text" as const, text }] };
   },
 };
