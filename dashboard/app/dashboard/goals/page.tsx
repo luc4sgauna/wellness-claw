@@ -2,17 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-interface GoalWithProgress {
+interface GoalInfo {
   id: number;
   goal_type: string;
   target_value: string;
   created_at: string;
-  progress: {
-    current: number;
-    target: number;
-    unit: string;
-    pct: number;
-  };
+  current_value: number | null;
+  pct: number;
 }
 
 const goalTypeLabels: Record<string, string> = {
@@ -33,8 +29,13 @@ function pctColor(pct: number): string {
   return "bg-red-500";
 }
 
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 export default function GoalsPage() {
-  const [goals, setGoals] = useState<GoalWithProgress[]>([]);
+  const [goals, setGoals] = useState<GoalInfo[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -59,26 +60,29 @@ export default function GoalsPage() {
               key={goal.id}
               className="bg-gray-900 border border-gray-800 rounded-xl p-5"
             >
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="font-semibold text-white">
-                    {goalTypeLabels[goal.goal_type] || goal.goal_type}
-                  </h3>
-                  <p className="text-sm text-gray-400">Target: {goal.target_value}</p>
-                </div>
-                <span className="text-2xl font-bold text-white">{goal.progress.pct}%</span>
-              </div>
+              <h3 className="font-semibold text-white mb-1">
+                {goalTypeLabels[goal.goal_type] || goal.goal_type}
+              </h3>
+              <p className="text-sm text-gray-400 mb-4">Target: {goal.target_value}</p>
 
-              <div className="w-full bg-gray-800 rounded-full h-2 mb-2">
-                <div
-                  className={`h-2 rounded-full transition-all ${pctColor(goal.progress.pct)}`}
-                  style={{ width: `${goal.progress.pct}%` }}
-                />
-              </div>
+              {goal.current_value !== null ? (
+                <>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-2xl font-bold text-white">{goal.current_value} lbs</span>
+                    <span className="text-sm text-gray-400">{goal.pct}%</span>
+                  </div>
+                  <div className="w-full bg-gray-800 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all ${pctColor(goal.pct)}`}
+                      style={{ width: `${goal.pct}%` }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-gray-500 italic">No progress logged yet</p>
+              )}
 
-              <p className="text-xs text-gray-500">
-                {goal.progress.current} / {goal.progress.target} {goal.progress.unit}
-              </p>
+              <p className="text-xs text-gray-600 mt-3">set {formatDate(goal.created_at)}</p>
             </div>
           ))}
         </div>

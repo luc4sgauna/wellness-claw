@@ -1,88 +1,51 @@
 import { getDb } from "../db";
 
-export interface Goal {
+// Maps goal_type → log_entries.category used to track progress
+const GOAL_LOG_CATEGORY: Record<string, string> = {
+  weight_target: "weight",
+};
+
+export interface GoalInfo {
   id: number;
   goal_type: string;
   target_value: string;
   created_at: string;
-  updated_at: string;
+  current_value: number | null;  // most recent logged value, or null
+  pct: number;                   // 0–100, calculated from first→latest log toward target
 }
 
-export function getActiveGoals(): Goal[] {
+export function getGoals(): GoalInfo[] {
   const db = getDb();
-  return db
-    .prepare(
-      `SELECT id, goal_type, target_value, created_at, updated_at
-       FROM goals WHERE active = 1 ORDER BY goal_type`
-    )
-    .all() as Goal[];
-}
+  const goals = db
+    .prepare(`SELECT id, goal_type, target_value, created_at FROM goals WHERE active = 1 ORDER BY created_at DESC`)
+    .all() as { id: number; goal_type: string; target_value: string; created_at: string }[];
 
-export function getGoalProgress(goal: Goal) {
-  const db = getDb();
+  return goals.map((goal) => {
+    const logCategory = GOAL_LOG_CATEGORY[goal.goal_type];
+    let current_value: number | null = null;
+    let pct = 0;
 
-  switch (goal.goal_type) {
-    case "training_frequency": {
-      const match = goal.target_value.match(/(\d+)x?\/?week/i);
-      const target = match ? parseInt(match[1]) : 4;
-      const row = db
-        .prepare(
-          `SELECT COUNT(DISTINCT date(logged_at)) as days
-           FROM log_entries
-           WHERE category = 'exercise' AND logged_at >= datetime('now', '-7 days')`
-        )
-        .get() as { days: number };
-      return { current: row.days, target, unit: "days/week", pct: Math.min(100, Math.round((row.days / target) * 100)) };
-    }
-    case "daily_steps": {
-      const target = parseInt(goal.target_value) || 10000;
-      const row = db
-        .prepare(
-          `SELECT AVG(steps) as avg_steps FROM oura_daily
-           WHERE date >= date('now', '-7 days') AND steps IS NOT NULL`
-        )
-        .get() as { avg_steps: number | null };
-      const current = Math.round(row.avg_steps ?? 0);
-      return { current, target, unit: "steps avg", pct: Math.min(100, Math.round((current / target) * 100)) };
-    }
-    case "sleep_window":
-    case "bedtime": {
-      const match = goal.target_value.match(/(\d{1,2}):(\d{2})/);
-      if (!match) return { current: 0, target: 0, unit: "time", pct: 0 };
-      const targetHour = parseInt(match[1]);
-      const targetMin = parseInt(match[2]);
-      const rows = db
-        .prepare(
-          `SELECT bedtime_start FROM oura_daily
-           WHERE date >= date('now', '-7 days') AND bedtime_start IS NOT NULL`
-        )
-        .all() as { bedtime_start: string }[];
-      let onTarget = 0;
-      for (const r of rows) {
-        const d = new Date(r.bedtime_start);
-        const h = d.getHours();
-        const m = d.getMinutes();
-        const totalMin = h * 60 + m;
-        const targetTotal = targetHour * 60 + targetMin;
-        if (Math.abs(totalMin - targetTotal) <= 30) onTarget++;
+    if (logCategory) {
+      const latest = db
+        .prepare(`SELECT value FROM log_entries WHERE category = ? AND value IS NOT NULL ORDER BY logged_at DESC LIMIT 1`)
+        .get(logCategory) as { value: number } | undefined;
+      const oldest = db
+        .prepare(`SELECT value FROM log_entries WHERE category = ? AND value IS NOT NULL ORDER BY logged_at ASC LIMIT 1`)
+        .get(logCategory) as { value: number } | undefined;
+
+      current_value = latest?.value ?? null;
+      const targetNum = parseFloat(goal.target_value);
+
+      if (current_value !== null && oldest !== undefined && !isNaN(targetNum)) {
+        const start = oldest.value;
+        const range = start - targetNum;
+        if (range !== 0) {
+          pct = Math.round(((start - current_value) / range) * 100);
+          pct = Math.max(0, Math.min(100, pct));
+        }
       }
-      const total = rows.length || 1;
-      return { current: onTarget, target: total, unit: "nights on target", pct: Math.round((onTarget / total) * 100) };
     }
-    case "alcohol_limit": {
-      const target = parseInt(goal.target_value) || 3;
-      const row = db
-        .prepare(
-          `SELECT COUNT(*) as count FROM log_entries
-           WHERE category = 'alcohol' AND logged_at >= datetime('now', '-7 days')`
-        )
-        .get() as { count: number };
-      const current = row.count;
-      const pct = current <= target ? 100 : Math.max(0, Math.round(((target * 2 - current) / target) * 100));
-      return { current, target, unit: "drinks/week", pct };
-    }
-    default: {
-      return { current: 0, target: 0, unit: "", pct: 0 };
-    }
-  }
+
+    return { ...goal, current_value, pct };
+  });
 }
