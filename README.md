@@ -15,7 +15,7 @@ A conversational wellness assistant plugin for [OpenClaw](https://openclaw.ai/).
 You need these already working:
 1. [OpenClaw](https://openclaw.ai/) installed and running
 2. Telegram channel connected in OpenClaw
-3. [OuraClaw](https://github.com/rickybloomfield/OuraClaw) plugin installed and authorized
+3. An [Oura Personal Access Token](https://cloud.ouraring.com/personal-access-tokens) (no OAuth needed)
 
 ## Install
 
@@ -107,12 +107,15 @@ The project includes a Dockerfile and `fly.toml` for deployment. The dashboard i
 # Set secrets
 fly secrets set DASHBOARD_PASSWORD=<your-password> -a wellness-openclaw
 fly secrets set ANTHROPIC_API_KEY=sk-ant-... -a wellness-openclaw
+fly secrets set OURA_PAT=<your-oura-personal-access-token> -a wellness-openclaw
 
 # Deploy
 fly deploy -a wellness-openclaw
 ```
 
 The dashboard will be available at `https://wellness-openclaw.fly.dev`.
+
+Oura data syncs automatically at startup and daily at 9:30am ET — no OAuth or OuraClaw needed.
 
 ## Data & Privacy
 
@@ -131,15 +134,16 @@ wellness-claw/
 ├── fly.toml                # Fly.io app config
 ├── entrypoint.sh           # Starts dashboard + gateway
 ├── src/
-│   ├── index.ts            # Plugin entry — registers all tools
+│   ├── index.ts            # Plugin entry — registers tools, schedules Oura sync
 │   ├── db.ts               # SQLite database setup + migrations
+│   ├── jobs/
+│   │   └── oura-sync-job.ts  # Daily Oura sync via Personal Access Token
 │   └── tools/
 │       ├── log-entry.ts    # Passive logging tool
 │       ├── query-logs.ts   # Query historical logs
 │       ├── insights.ts     # Correlation analysis engine
 │       ├── goals.ts        # Goals CRUD
-│       ├── admin.ts        # Delete, export, stats
-│       └── oura-sync.ts    # Store Oura data for analysis
+│       └── admin.ts        # Delete, export, stats
 ├── dashboard/
 │   ├── app/                # Next.js pages and API routes
 │   ├── components/         # Sidebar, StatCard, DateRangePicker

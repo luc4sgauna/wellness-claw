@@ -7,25 +7,27 @@
 │  │                   OpenClaw Gateway (v2026.2.15)               │  │
 │  │                        port 3000 (WS)                        │  │
 │  │                                                              │  │
-│  │  ┌─────────────────┐  ┌──────────────┐  ┌────────────────┐  │  │
-│  │  │  Telegram Plugin │  │   OuraClaw   │  │  WellnessClaw  │  │  │
-│  │  │                 │  │   (v0.1.4)   │  │    (v1.0.0)    │  │  │
-│  │  │  Bot polling    │  │              │  │                │  │  │
-│  │  │  DM + groups    │  │  oura_data   │  │  7 tools:      │  │  │
-│  │  └────────┬────────┘  └──────┬───────┘  │  log_entry     │  │  │
-│  │           │                  │          │  query_logs    │  │  │
-│  │           │                  │          │  insights      │  │  │
-│  │  ┌────────┴──────────────────┘          │  goals         │  │  │
-│  │  │  Cron Scheduler (4 jobs)             │  admin         │  │  │
-│  │  │  ┌─────────────────────────────┐     │  oura_sync     │  │  │
-│  │  │  │ 07:00  Morning Readiness    │     │  nudge_check   │  │  │
-│  │  │  │ 14:00  Afternoon Movement   │     └───────┬────────┘  │  │
-│  │  │  │ 21:30  Evening Wind-down    │             │           │  │
-│  │  │  │ 00:00  Nightly Oura Sync    │             │           │  │
-│  │  │  └─────────────────────────────┘             │           │  │
-│  │  └──────────────────────────────────────────────┘           │  │
+│  │  ┌─────────────────┐              ┌────────────────────────┐  │  │
+│  │  │  Telegram Plugin │              │     WellnessClaw       │  │  │
+│  │  │                 │              │       (v1.0.0)         │  │  │
+│  │  │  Bot polling    │              │                        │  │  │
+│  │  │  DM + groups    │              │  5 tools:              │  │  │
+│  │  └────────┬────────┘              │  log_entry             │  │  │
+│  │           │                      │  query_logs            │  │  │
+│  │           │                      │  insights              │  │  │
+│  │  ┌────────┴──────────────────┐   │  goals                 │  │  │
+│  │  │  Cron Scheduler (1 job)   │   │  admin                 │  │  │
+│  │  │  ┌─────────────────────┐  │   └──────────┬─────────────┘  │  │
+│  │  │  │ 09:30 ET  Oura Sync │  │              │               │  │
+│  │  │  └─────────────────────┘  │              │               │  │
+│  │  └───────────────────────────┘              │               │  │
+│  │                                             │               │  │
+│  │  ┌──────────────────────────────────────────┘               │  │
+│  │  │  In-house Oura sync (src/jobs/oura-sync-job.ts)          │  │
+│  │  │  Fetches via PAT · writes to oura_daily                  │  │
+│  │  └──────────────────────────────────────────────────────────┘  │
 │  │                                                              │  │
-│  │  Agent: Claude Opus 4.5 (Anthropic API)                      │  │
+│  │  Agent: Claude Opus 4.6 (Anthropic API)                      │  │
 │  │  Skills: wellness-router → wellness-coach / wellness-insights │  │
 │  └───────────────────────────────────────────────────────────────┘  │
 │                                                                    │
@@ -38,11 +40,9 @@
 │  │  credentials/           Telegram pairing + allowlist         │  │
 │  │  devices/               Paired device tokens                 │  │
 │  │  identity/              Gateway device identity              │  │
-│  │  cron/jobs.json         4 scheduled jobs                     │  │
+│  │  cron/jobs.json         1 scheduled job (Oura sync 9:30 ET)  │  │
 │  │  extensions/                                                 │  │
-│  │    ├── wellness-claw/   Plugin code + dist                   │  │
-│  │    └── ouraclaw/        Plugin code + dist                   │  │
-│  │  plugins/OuraClaw/      Oura OAuth tokens (config.json)      │  │
+│  │    └── wellness-claw/   Plugin code + dist                   │  │
 │  │  wellness-claw/                                              │  │
 │  │    └── wellness.db      SQLite (WAL mode)                    │  │
 │  │  workspace/                                                  │  │
@@ -54,7 +54,7 @@
 
           │                    │                       │
           │ Telegram API       │ Oura API              │ Anthropic API
-          │ (long-poll)        │ (OAuth2)              │ (claude-opus-4-5)
+          │ (long-poll)        │ (PAT)                 │ (claude-opus-4-6)
           ▼                    ▼                       ▼
 
 ┌──────────────┐    ┌──────────────────┐    ┌──────────────────┐
