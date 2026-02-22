@@ -2,6 +2,7 @@
   "name": "wellness-claw",
   "version": "1.0.0",
   "description": "OpenClaw plugin for conversational wellness tracking, Oura insights, and coaching",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -14,7 +15,9 @@
     ]
   },
   "dependencies": {
-    "better-sqlite3": "^11.7.0"
+    "@types/node-cron": "^3.0.11",
+    "better-sqlite3": "^11.7.0",
+    "node-cron": "^4.2.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",
