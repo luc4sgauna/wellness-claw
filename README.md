@@ -7,7 +7,7 @@ A conversational wellness assistant plugin for [OpenClaw](https://openclaw.ai/).
 - **Passive logging**: Text "45 min HIIT" or "stressful day" — it auto-classifies and stores structured data
 - **Oura insights**: Ask "How does stress affect my sleep?" — it runs correlations against your Oura data
 - **Goals + accountability**: Set targets, track streaks, get gentle progress updates
-- **Web dashboard**: View streaks, goals, Oura charts, correlations, and timeline at `https://wellness-openclaw.fly.dev`
+- **Web dashboard**: View streaks, goals, Oura charts, and timeline at `https://wellness-openclaw.fly.dev`
 - **Admin controls**: Delete entries, export data (CSV/JSON)
 
 ## Prerequisites
@@ -87,7 +87,6 @@ The web dashboard runs alongside the OpenClaw gateway and provides:
 - **Goals**: Active goals with progress bars
 - **Timeline**: Scrollable feed of all logged entries
 - **Oura**: Charts for sleep scores, HRV, steps, and bedtime consistency
-- **Correlations**: How stress, alcohol, and exercise affect your sleep and recovery
 
 ### Dashboard Streaks
 
